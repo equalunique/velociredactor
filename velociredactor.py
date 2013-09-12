@@ -3,6 +3,7 @@ import os
 import tempfile
 import argparse
 import subprocess
+import xmlrpclib
 
 parser = argparse.ArgumentParser(description='Redact info from PDF based on GIMP template')
 #parser.add_argument('ipdf', required=True, help='PDF to perform redaction on')
@@ -59,20 +60,6 @@ pngt_bas = '.'.join(tup)
 tdir = tempfile.mkdtemp()
 #print tdir
 
-# PDF 2 PNGs via GhostScript
-#output = Popen(["mycmd", "myarg"], stdout=PIPE).communicate()[0]
-
-#output = Popen([
-#   'gs',
-#   '-q',
-#   '-dNOPAUSE',
-#   '-dBATCH',
-#   '-sDEVICE=pngalpha',
-#   '-r300',
-#   '-dEPSCrop',
-#   '-sOutputFile="%s %s"' % (pngt_bas, nosp_ipdf_abs),
-#], stdout=PIPE).communicate()[0]
-
 os.chdir(tdir)
 
 print("pngt_bas: %s" % pngt_bas)
@@ -93,36 +80,39 @@ sub = ''.join([
 print(sub)
 subprocess.check_output([sub], shell=True)
 
-
-
-
-#output = Popen([
-#    self.tdir, 
-#   'inkscape',
-#   '%s' % (ipdf_abs)),
-#   '-z',
-#   '--export-dpi=600',
-#   '--export-area-drawing',
-#   '--export-png="%s"' % (args.ipdf+args.osfx),
-#], stdout=PIPE).communicate()[0]
-
-
-
+png_file_list = []
 print("Opened temporary directory: %s" % tdir)
 png_file_list = sorted(os.listdir(tdir))
 for png_file in png_file_list:
 	print("Created %s" % png_file)
 
+## Open GIMP without UI
+
+#Connect to GIMP XML-RPC Server
+s = xmlrpclib.ServerProxy('http://localhost:8000') 
+
+#Load template
+print s.load_template(tmpl_abs)
 
 # For each PNG
-
+for png_file in png_file_list:
 	# Load PNG to libgimp
-
+	print s.load_png('/'.join([tdir,png_file]))
 	# Deskew PNGs via libgimp and deskew
-
+	print s.apply_deskew()
 	# Apply Redaction Template via libgimp
+	if png_file == png_file_list[0]:
+		print s.apply_redactions()
+	# Save PNG
+	print s.save_png()
+	# Close PNG
+	print s.close_png()
 
-	# Save as Redacted PNG
+# Close template
+print s.close_template()
+# Quit GIMP
+print s.quit_gimp()
+
 
 # PNGs 2 PDFs via ImageMagick
 i = 1
