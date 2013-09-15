@@ -16,6 +16,7 @@ from gimpfu import *
 # 	ImageMagick
 # 	Python
 # 	Bash(?)
+#	Deskew Plugin for GIMP
 # 
 # Basically this works when called from GIMP's Python-Fu:
 # pdb.python_fu_velociredactor(<tmpl>, <idir>, <odir>)
