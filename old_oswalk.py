@@ -1,44 +1,9 @@
 #!/usr/bin/python
 import os
 import tempfile
+import argparse
 import subprocess
 import shutil
-from gimpfu import *
-
-# 
-# velociredactor.py
-# 
-# Batch redact from similar PDFs in a directory
-# 
-# Powered by: 
-# 	GIMP, 
-# 	GhostScript, 
-# 	ImageMagick
-# 	Python
-# 	Bash(?)
-# 
-# Basically this works when called from GIMP's Python-Fu:
-# pdb.python_fu_velociredactor(<tmpl>, <idir>, <odir>)
-# 
-# Developed on Ubuntu 12.04.3 LTS 32-bit
-# 
-# 2013 Evan Rowley
-# 
-# velociredactor is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
-
-
 
 def velociredactor(tmpl, src, dest, ignore=None):
 	if os.path.isdir(src):
@@ -103,21 +68,9 @@ def velociredactor(tmpl, src, dest, ignore=None):
 
 			## START MODIFY PNG FILES ##
 
-			image = pdb.file_png_load(png_file_list[0], png_file_list[0])
-			drawable = image.active_layer
-			pdb.gimp_deskew_plugin(image,drawable,0,0,0,0,0,run_mode=0)
-			backlayer = pdb.gimp_layer_new(image, image.width, image.height, 0, 'backlayer', 100, 0)
-			pdb.gimp_image_add_layer(image, backlayer, 1)
-			pdb.gimp_context_set_background((255,255,255))
-			pdb.gimp_drawable_fill(backlayer, 1)
-			pdb.gimp_image_lower_layer_to_bottom(image, backlayer)
-			template = pdb.gimp_file_load_layer(image,tmpl)
-			pdb.gimp_image_add_layer(image,template, -1)
-			pdb.gimp_image_raise_layer_to_top(image, template)
-			image.merge_visible_layers(2)
-			pdb.file_png_save(image, image.active_layer, png_file_list[0], png_file_list[0], 0, 9, 1, 1, 1, 1, 1)
-			pdb.gimp_image_delete(image)
-
+			#s.redact(png_file_list[0], templ) #Send 
+			#while s.redacting()
+			#	# wait 3s
 			## END MODIFY PNG FILES ##
 
 			## START PNGs 2 PDFs ##
@@ -231,21 +184,22 @@ def bashFriendlyPath(astring):
 	return astring
 
 
-register(
-        "python_fu_velociredactor",
-        "Perform fancy redactions on many PDFs",
-        "Perform fancy redactions on many PDFs",
-        "Evan Rowley",
-        "Evan Rolwey",
-        "2013",
-        "<Toolbox>/MyScripts/Velociredactor",
-        "*",
-        [
-                (PF_STRING , "tmpl", "Template XCF", ""),
-                (PF_STRING , "src", "Source Folder", ""),
-                (PF_STRING , "dest", "Destination Folder", ""),
-        ],
-        [],
-        velociredactor)
+#What arguments are acceptable
+parser = argparse.ArgumentParser(description='Redact info from many PDFs based on GIMP template')
+parser.add_argument('--idira', help='Input directory containing PDFs and \/ or other directories', required=True)
+parser.add_argument('--odira', help='Output directory to mirror the input directory', required=True)
+parser.add_argument('--tmpla', help='GIMP XCF file as template for redaction', required=True)
+args = parser.parse_args()
 
-main()
+idira = os.path.abspath(args.idira)
+odira = os.path.abspath(args.odira)
+tmpla = os.path.abspath(args.tmpla)
+
+
+
+#scanPDFs = []
+#scanPDFs = scanDirForPDFs(idir)
+#print scanPDFs
+velociredactor(tmpla, idira, odira)
+#scanPDFs = scanDirForPDFs(odir)
+#print scanPDFs
